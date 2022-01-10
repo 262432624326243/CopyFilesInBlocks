@@ -3,31 +3,35 @@ package hw;
 import java.io.*;
 
 public class Reciever implements Runnable {
-    private File file;
-    private Mediator mediator;
-    private int turn;
+    private final Mediator mediator;
+    private final File file;
 
-    public Reciever(File file, Mediator mediator, int turn) {
-        this.file = file;
+    Reciever(Mediator mediator, File file) {
         this.mediator = mediator;
-        this.turn = turn;
+        this.file = file;
     }
 
-    public void outBytes() {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file, true))) {
-            while (!mediator.isStop()) {
-                bw.write(mediator.getTemp());
+    private void printNums() {
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            Pair pair;
+            for (; ; ) {
+                //Pair pair = mediator.getTemp();
+                pair = mediator.getTemp();
+                if (pair.isStopWork()) {
+                    break;
+                } else {
+                    fos.write(pair.getValue());
+                    mediator.printProgress();
+                }
             }
-            System.out.println("----While is end.");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("----outBytes is end");
     }
 
     @Override
     public void run() {
-        outBytes();
-        System.out.println("Reciever is END.");
+        printNums();
+        System.out.println("Reciever is end");
     }
 }

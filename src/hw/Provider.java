@@ -3,25 +3,26 @@ package hw;
 import java.io.*;
 
 public class Provider implements Runnable {
-    private File file;
-    private Mediator mediator;
-    private int turn;
+    private final Mediator mediator;
+    private final File file;
 
-    public Provider(File file, Mediator mediator, int turn) {
-        this.file = file;
+    public Provider(Mediator mediator, File file) {
         this.mediator = mediator;
-        this.turn = turn;
+        this.file = file;
     }
 
-    private void setBytes() {
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String readedByte;
-            while ((readedByte = br.readLine()) != null) {
-                mediator.setTemp(readedByte + System.lineSeparator());
-                System.out.println(readedByte);
+    private void generateNums() {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            int readedByte;
+            for (; ; ) {
+                readedByte = fis.read();
+                if (readedByte == -1) {
+                    mediator.setTemp(new Pair(-1, true));
+                    break;
+                } else {
+                    mediator.setTemp(new Pair(readedByte, false));
+                }
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -29,8 +30,7 @@ public class Provider implements Runnable {
 
     @Override
     public void run() {
-        setBytes();
-        mediator.setStop(true);
-        System.out.println("Provider is END.");
+        generateNums();
+        System.out.println("Provider is end");
     }
 }

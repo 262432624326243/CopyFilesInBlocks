@@ -1,56 +1,50 @@
 package hw;
 
+import java.io.File;
+
 public class Mediator {
-    private String temp;
-    private int turn = 0;
-    private boolean isStop = false;
+    private final File fileIn;
+    private final File fileOut;
+    private Pair pair;
+    private boolean turn = false;
 
-    public synchronized void setTemp(String temp) {
-        while (this.turn != 0) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        this.temp = temp;
-        this.turn = 1;
-        notifyAll();
+    public Mediator(File fileIn, File fileOut) {
+        this.fileIn = fileIn;
+        this.fileOut = fileOut;
     }
 
-    public synchronized String getTemp() {
-        while (this.turn != 1) {
+    public void printProgress() {
+        System.out.println("Complete " + (double) (((double) fileOut.length() * 100) / (double) fileIn.length()) + " %");
+    }
+
+    public synchronized Pair getTemp() {
+        while (!this.turn) {
             try {
                 wait();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        this.turn = 0;
+        Pair temp = this.pair;
+        this.turn = false;
         notifyAll();
+        // System.out.println("Get number -> " + this.pair.getValue());
         return temp;
     }
 
-    public synchronized void printProgress(float fileInSize, float fileOutSize) {
-        while (this.turn != 2) {
+    public synchronized void setTemp(Pair pair) {
+        while (this.turn) {
             try {
                 wait();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        System.out.println(((fileOutSize * 100) / fileInSize));
-        this.turn = 0;
+
+        this.pair = pair;
+        this.turn = true;
+        //System.out.println("Send number -> " + this.pair.getValue());
         notifyAll();
     }
 
-    public void setStop(boolean stop) {
-        isStop = stop;
-    }
-
-    public boolean isStop() {
-        return isStop;
-    }
 }
-
